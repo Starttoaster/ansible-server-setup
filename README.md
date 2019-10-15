@@ -1,16 +1,3 @@
-Required CI variables:
- - CREATE_USERNAME the username to be created by this playbook
- - HOST the IP address of the host to connect to
- - HOST_USER the username of the remote host
- - HOST_PASSWORD the password of the remote host's user account
-
-Required CI File variables:
- - id_rsa the private key to install
- - id_rsa_pub the public key to install
-
-TODO:
- - Make usable on other distros (currently works on CentOS 7)
-
  # ansible-server-setup
 Ansible playbook for installing Docker, some basic packages, configuring a user account with your public keys, and basic SSH hardening. 
 Just Works<sup>TM</sup> on CentOS, Red Hat, Debian, and Ubuntu servers.
