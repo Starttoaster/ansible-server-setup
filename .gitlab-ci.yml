@@ -1,0 +1,18 @@
+image: williamyeh/ansible:debian9
+
+stages:
+  - deploy
+
+variables:
+  BUILD_TMP_DIR: ${CI_PROJECT_DIR}.tmp/
+
+before_script:
+  - echo -e "new_host ansible_host=${HOST} ansible_port=${HOST_PORT} ansible_user=${HOST_USER} ansible_password=${HOST_PASSWORD} " > /etc/ansible/hosts
+  - export ANSIBLE_HOST_KEY_CHECKING=False
+  - mv ${BUILD_TMP_DIR}id_rsa  ./id_rsa
+  - mv ${BUILD_TMP_DIR}id_rsa_pub ./id_rsa.pub
+
+deploy:
+  stage: deploy
+  script:
+    - ansible-playbook playbook.yml --extra-vars "username=${CREATE_USERNAME}"

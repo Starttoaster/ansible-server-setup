@@ -1,0 +1,10 @@
+--- # Handlers document
+
+- name: restart ssh
+  action: service name=sshd state=restarted
+- name: delete password
+  command: passwd -d {{ username }}
+  listen: password setup
+- name: expire password
+  command: chage -d 0 {{ username }}
+  listen: password setup

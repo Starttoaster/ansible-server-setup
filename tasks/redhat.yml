@@ -1,0 +1,98 @@
+--- # Setup Docker and docker-compose, user, and basic server setup
+
+- name: Update all packages [Red Hat/CentOS]
+  yum:
+    name: '*'
+    state: latest
+- name: Install new packages for docker pre-reqs (Red Hat/CentOS)
+  yum:
+    name:
+    - yum-utils
+    - device-mapper-persistent-data
+    - lvm2
+    state: latest
+- name: Add the Docker repository (Red Hat/CentOS)
+  get_url:
+    url: https://download.docker.com/linux/centos/docker-ce.repo
+    dest: /etc/yum.repos.d/docer-ce.repo
+- name: Install Docker (Red Hat/CentOS)
+  yum:
+    name:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+- name: Install docker-compose
+  get_url:
+    url: https://github.com/docker/compose/releases/download/1.24.1/docker-compose-{{ ansible_system }}-{{ ansible_userspace_architecture }}
+    dest: /usr/local/bin/docker-compose      
+    mode: '0755'
+- name: Start Docker service
+  service:
+    name: docker
+    enabled: yes
+    state: started
+
+#
+# Configure user account
+#
+- name: Adding user account
+  user:
+    name: "{{ user }}" 
+    groups: docker,wheel
+    create_home: yes
+    shell: /bin/bash
+    skeleton: /etc/skel
+  notify: password setup
+- name: Installs authorized key
+  authorized_key:
+    user: "{{ user }}"
+    state: present
+    key: "{{ lookup('file', './id_rsa.pub') }}"
+- name: Copy id_rsa file to .ssh/
+  copy:
+    src: ./id_rsa
+    dest: /home/{{ user }}/.ssh/id_rsa
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0600'
+- name: Copy id_rsa.pub file to .ssh/
+  copy:
+    src: ./id_rsa.pub
+    dest: /home/{{ user }}/.ssh/id_rsa.pub
+    owner: "{{ user }}"
+    group: "{{ user }}"
+    mode: '0600'
+
+#
+# Additional package installation
+#
+- name: Install additional packages (Red Hat/CentOS)
+  yum:
+    name:
+    - fail2ban
+    - git
+    state: latest
+
+#
+# Service configuration
+#
+- name: Disable password SSH login
+  lineinfile:
+    dest=/etc/ssh/sshd_config
+    regexp="^PasswordAuthentication"
+    line="PasswordAuthentication no"
+    state=present
+  notify: restart ssh
+- name: Disable root SSH access
+  lineinfile:
+    dest=/etc/ssh/sshd_config
+    regexp="^PermitRootLogin"
+    line="PermitRootLogin no"
+    state=present
+  notify: restart ssh
+- name: Mask ctrl-alt-del.target
+  systemd:
+    name: ctrl-alt-del.target
+    masked: yes
+    enabled: no
+    daemon_reload: yes

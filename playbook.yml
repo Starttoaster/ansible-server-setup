@@ -1,0 +1,21 @@
+--- # Setup Docker, user account, and SSH hardening
+
+- hosts: new_host
+  connection: ssh
+  become: yes
+
+  tasks:
+  - name: Open up Red Hat/CentOS playbook
+    include: tasks/redhat.yml user="{{ username }}"
+    when: "ansible_os_family == 'RedHat'"
+
+  - name: Open up Debian playbook
+    include: tasks/debian.yml user="{{ username }}"
+    when: "ansible_distribution == 'Debian'"
+
+  - name: Open up Ubuntu playbook
+    include: tasks/ubuntu.yml user="{{ username }}"
+    when: "ansible_distribution == 'Ubuntu'"
+
+  handlers:
+  - include: handlers/handlers.yml
