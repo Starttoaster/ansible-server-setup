@@ -17,5 +17,8 @@
     include: tasks/ubuntu.yml user="{{ username }}"
     when: "ansible_distribution == 'Ubuntu'"
 
+  - name: Open up Common playbook
+    include: tasks/common.yml
+
   handlers:
   - include: handlers/handlers.yml

@@ -1,5 +1,8 @@
---- # Setup Docker and docker-compose, user, and basic server setup
+--- # Playbook for Red Hat and CentOS servers
 
+#
+# Set up Docker and docker-compose
+#
 - name: Update all packages [Red Hat/CentOS]
   yum:
     name: '*'
@@ -43,25 +46,6 @@
     shell: /bin/bash
     skeleton: /etc/skel
   notify: password setup
-- name: Installs authorized key
-  authorized_key:
-    user: "{{ user }}"
-    state: present
-    key: "{{ lookup('file', './id_rsa.pub') }}"
-- name: Copy id_rsa file to .ssh/
-  copy:
-    src: ./id_rsa
-    dest: /home/{{ user }}/.ssh/id_rsa
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: '0600'
-- name: Copy id_rsa.pub file to .ssh/
-  copy:
-    src: ./id_rsa.pub
-    dest: /home/{{ user }}/.ssh/id_rsa.pub
-    owner: "{{ user }}"
-    group: "{{ user }}"
-    mode: '0600'
 
 #
 # Additional package installation
@@ -72,27 +56,3 @@
     - fail2ban
     - git
     state: latest
-
-#
-# Service configuration
-#
-- name: Disable password SSH login
-  lineinfile:
-    dest=/etc/ssh/sshd_config
-    regexp="^PasswordAuthentication"
-    line="PasswordAuthentication no"
-    state=present
-  notify: restart ssh
-- name: Disable root SSH access
-  lineinfile:
-    dest=/etc/ssh/sshd_config
-    regexp="^PermitRootLogin"
-    line="PermitRootLogin no"
-    state=present
-  notify: restart ssh
-- name: Mask ctrl-alt-del.target
-  systemd:
-    name: ctrl-alt-del.target
-    masked: yes
-    enabled: no
-    daemon_reload: yes
